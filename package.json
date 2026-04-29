@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "@kugou/voo-create-skill": "^1.1.4"
+  }
+}

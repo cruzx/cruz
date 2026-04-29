@@ -1,0 +1,27 @@
+[project]
+name = "free-listening-strategy-monitor"
+version = "0.1.0"
+description = "Local strategy monitor for free-listening and membership conversion UI patterns."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+  "fastapi>=0.115.0",
+  "openai>=1.51.0",
+  "python-multipart>=0.0.12",
+  "uvicorn>=0.32.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.3.3",
+]
+
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["strategy_monitor*"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]

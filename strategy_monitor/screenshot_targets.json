@@ -1,0 +1,214 @@
+{
+  "platforms": [
+    {
+      "platform": "apple_music",
+      "app_name": "Apple Music",
+      "ios_bundle_id": "com.apple.Music",
+      "android_package": "com.apple.android.music",
+      "screens": [
+        {
+          "name": "首页推荐",
+          "wait_seconds": 3.0,
+          "steps": []
+        },
+        {
+          "name": "播放页",
+          "wait_seconds": 3.0,
+          "steps": []
+        },
+        {
+          "name": "搜索页",
+          "wait_seconds": 3.0,
+          "steps": []
+        },
+        {
+          "name": "资料库",
+          "wait_seconds": 3.0,
+          "steps": []
+        },
+        {
+          "name": "电台页",
+          "wait_seconds": 3.0,
+          "steps": []
+        }
+      ]
+    },
+    {
+      "platform": "spotify",
+      "app_name": "Spotify",
+      "ios_bundle_id": "com.spotify.client",
+      "android_package": "com.spotify.music",
+      "screens": [
+        {
+          "name": "首页推荐",
+          "wait_seconds": 3.0,
+          "steps": []
+        },
+        {
+          "name": "播放页",
+          "wait_seconds": 3.0,
+          "steps": []
+        },
+        {
+          "name": "搜索页",
+          "wait_seconds": 3.0,
+          "steps": []
+        },
+        {
+          "name": "歌单详情",
+          "wait_seconds": 3.0,
+          "steps": []
+        },
+        {
+          "name": "个人主页",
+          "wait_seconds": 3.0,
+          "steps": []
+        }
+      ]
+    },
+    {
+      "platform": "qishui",
+      "app_name": "汽水音乐",
+      "ios_bundle_id": "",
+      "android_package": "com.luna.music",
+      "screens": [
+        {
+          "name": "首页推荐",
+          "wait_seconds": 3.0,
+          "steps": []
+        },
+        {
+          "name": "播放页",
+          "wait_seconds": 3.0,
+          "steps": []
+        },
+        {
+          "name": "搜索页",
+          "wait_seconds": 3.0,
+          "steps": []
+        },
+        {
+          "name": "会员页",
+          "wait_seconds": 3.0,
+          "steps": []
+        },
+        {
+          "name": "活动页",
+          "wait_seconds": 3.0,
+          "steps": []
+        }
+      ]
+    },
+    {
+      "platform": "netease_music",
+      "app_name": "网易云音乐",
+      "ios_bundle_id": "",
+      "android_package": "com.netease.cloudmusic",
+      "screens": [
+        {
+          "name": "首页推荐",
+          "wait_seconds": 3.0,
+          "steps": []
+        },
+        {
+          "name": "播放页",
+          "wait_seconds": 3.0,
+          "steps": []
+        },
+        {
+          "name": "搜索页",
+          "wait_seconds": 3.0,
+          "steps": []
+        },
+        {
+          "name": "歌单详情",
+          "wait_seconds": 3.0,
+          "steps": []
+        },
+        {
+          "name": "评论区",
+          "wait_seconds": 3.0,
+          "steps": []
+        }
+      ]
+    },
+    {
+      "platform": "qq_music",
+      "app_name": "QQ 音乐",
+      "ios_bundle_id": "",
+      "android_package": "com.tencent.qqmusic",
+      "screens": [
+        {
+          "name": "首页推荐",
+          "wait_seconds": 3.0,
+          "steps": []
+        },
+        {
+          "name": "播放页",
+          "wait_seconds": 3.0,
+          "steps": []
+        },
+        {
+          "name": "搜索页",
+          "wait_seconds": 3.0,
+          "steps": []
+        },
+        {
+          "name": "会员页",
+          "wait_seconds": 3.0,
+          "steps": []
+        },
+        {
+          "name": "评论区",
+          "wait_seconds": 3.0,
+          "steps": []
+        }
+      ]
+    },
+    {
+      "platform": "kugou",
+      "app_name": "酷狗音乐",
+      "ios_bundle_id": "",
+      "android_package": "com.kugou.android",
+      "screens": [
+        {
+          "name": "首页推荐",
+          "wait_seconds": 3.0,
+          "steps": []
+        },
+        {
+          "name": "播放页",
+          "wait_seconds": 3.0,
+          "steps": []
+        },
+        {
+          "name": "搜索页",
+          "wait_seconds": 3.0,
+          "steps": []
+        },
+        {
+          "name": "会员页",
+          "wait_seconds": 3.0,
+          "steps": []
+        },
+        {
+          "name": "个人主页",
+          "wait_seconds": 3.0,
+          "steps": []
+        }
+      ]
+    }
+  ],
+  "capture_states": [
+    "未登录态",
+    "已登录普通用户",
+    "已登录会员态",
+    "灰度曝光态",
+    "人工补录"
+  ],
+  "device_types": [
+    "android",
+    "ios_simulator",
+    "manual"
+  ]
+}

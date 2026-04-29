@@ -1,0 +1,15 @@
+.DS_Store
+.runvenv/
+data/
+工作/
+free_listening_strategy_monitor.egg-info/
+
+music-intel/.env
+music-intel/.venv/
+music-intel/data/
+
+strategy_monitor/__pycache__/
+strategy_monitor/tools/
+strategy_monitor/local_settings.json
+
+*.pyc

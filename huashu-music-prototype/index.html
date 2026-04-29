@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>回声 Echo · iOS Music Prototype</title>
+  <!--
+  我的假设：
+  - 这是一个原创听歌 App，不依赖现有品牌资产。
+  - 核心 flow 是：发现音乐 → 打开专辑/歌曲 → 播放页 → 收藏/资料库。
+  - 用户想看 iOS 高保真原型，所以重点放在真实手机框、底部 Tab、迷你播放器和可点击状态。
+  - 内容先用虚拟歌单与远程图片占位，后续可以替换为真实歌单/品牌/版权曲库。
+  -->
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { width: 100%; min-height: 100%; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Hiragino Sans GB", sans-serif;
+      background:
+        radial-gradient(circle at 24% 16%, rgba(244, 92, 77, 0.18), transparent 32%),
+        radial-gradient(circle at 78% 6%, rgba(55, 184, 171, 0.16), transparent 30%),
+        linear-gradient(135deg, #15110f 0%, #0b0d10 52%, #10110d 100%);
+      color: #f6f1e8;
+      overflow-x: hidden;
+    }
+    button { font: inherit; color: inherit; border: 0; background: none; cursor: pointer; }
+    #root {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 28px;
+    }
+    .stage {
+      display: grid;
+      grid-template-columns: minmax(280px, 460px) 1fr;
+      gap: 32px;
+      align-items: center;
+      width: min(1180px, 100%);
+    }
+    .brief h1 {
+      font-size: 44px;
+      line-height: 1.05;
+      font-weight: 760;
+      margin-bottom: 18px;
+    }
+    .brief p {
+      color: rgba(246, 241, 232, 0.72);
+      font-size: 16px;
+      line-height: 1.7;
+      max-width: 430px;
+    }
+    .brief-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 24px;
+      max-width: 430px;
+    }
+    .brief-chip {
+      min-height: 76px;
+      border: 1px solid rgba(246, 241, 232, 0.12);
+      border-radius: 8px;
+      padding: 13px;
+      background: rgba(255, 255, 255, 0.045);
+    }
+    .brief-chip strong { display: block; font-size: 19px; margin-bottom: 6px; }
+    .brief-chip span { display: block; color: rgba(246, 241, 232, 0.58); font-size: 12px; line-height: 1.4; }
+    .phone-shell {
+      justify-self: center;
+      width: 417px;
+      height: 876px;
+      padding: 12px;
+      border-radius: 60px;
+      background: #030303;
+      box-shadow: 0 0 0 2px #26221d, 0 32px 90px rgba(0, 0, 0, 0.55);
+      position: relative;
+    }
+    .phone-screen {
+      width: 393px;
+      height: 852px;
+      border-radius: 48px;
+      overflow: hidden;
+      background: #0b0d10;
+      position: relative;
+    }
+    .dynamic-island {
+      position: absolute;
+      top: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 124px;
+      height: 36px;
+      border-radius: 999px;
+      background: #000;
+      z-index: 30;
+    }
+    .status-bar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 54px;
+      z-index: 25;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 32px;
+      font-size: 16px;
+      font-weight: 650;
+      color: #f8f4ec;
+      pointer-events: none;
+    }
+    .status-icons { display: flex; align-items: center; gap: 7px; }
+    .signal { display: flex; gap: 2px; align-items: end; height: 12px; }
+    .signal i { display: block; width: 3px; background: currentColor; border-radius: 1px; }
+    .battery { width: 26px; height: 12px; border: 1.5px solid currentColor; border-radius: 3px; padding: 1px; position: relative; }
+    .battery::before { content: ""; display: block; width: 72%; height: 100%; background: currentColor; border-radius: 1px; }
+    .battery::after { content: ""; position: absolute; top: 3px; right: -3px; width: 2px; height: 6px; background: currentColor; border-radius: 0 1px 1px 0; }
+    .app {
+      position: absolute;
+      inset: 0;
+      padding-top: 54px;
+      background:
+        linear-gradient(180deg, rgba(245, 92, 72, 0.12), transparent 30%),
+        #0b0d10;
+      color: #f7f2ea;
+    }
+    .content {
+      position: absolute;
+      top: 54px;
+      left: 0;
+      right: 0;
+      bottom: 88px;
+      overflow: auto;
+      padding: 20px 18px 18px;
+    }
+    .content.with-player { bottom: 156px; }
+    .content::-webkit-scrollbar { width: 0; }
+    .topline {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .eyebrow { color: #e2a687; font-size: 12px; font-weight: 700; }
+    .title { font-size: 32px; line-height: 1.04; font-weight: 780; margin-top: 5px; }
+    .avatar {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #f65b4b, #38bdad 52%, #e6d86c);
+      box-shadow: inset 0 0 0 2px rgba(255,255,255,0.25);
+    }
+    .hero-card {
+      min-height: 184px;
+      border-radius: 8px;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      background:
+        linear-gradient(135deg, rgba(246, 91, 75, 0.35), transparent 52%),
+        linear-gradient(315deg, rgba(55, 189, 173, 0.24), transparent 48%),
+        #1a1512;
+      border: 1px solid rgba(255,255,255,0.08);
+      overflow: hidden;
+      position: relative;
+      text-align: left;
+    }
+    .hero-card::after {
+      content: "";
+      position: absolute;
+      width: 142px;
+      height: 142px;
+      right: -20px;
+      bottom: -24px;
+      border-radius: 50%;
+      background: conic-gradient(from 60deg, #101010, #f65b4b, #e7db72, #37bdad, #101010);
+      box-shadow: inset 0 0 0 34px #121212, inset 0 0 0 38px rgba(255,255,255,0.08);
+    }
+    .hero-card h2 { font-size: 25px; line-height: 1.12; width: 180px; position: relative; z-index: 1; }
+    .hero-card p { color: rgba(255,255,255,0.72); font-size: 13px; line-height: 1.45; width: 190px; position: relative; z-index: 1; }
+    .section-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin: 24px 0 12px;
+    }
+    .section-row h3 { font-size: 19px; }
+    .section-row span { color: rgba(246,241,232,0.54); font-size: 12px; }
+    .album-strip {
+      display: grid;
+      grid-auto-flow: column;
+      grid-auto-columns: 132px;
+      gap: 13px;
+      overflow-x: auto;
+      padding-bottom: 3px;
+    }
+    .album-strip::-webkit-scrollbar { height: 0; }
+    .album-card { text-align: left; }
+    .cover {
+      width: 132px;
+      height: 132px;
+      border-radius: 8px;
+      object-fit: cover;
+      display: block;
+      background: #28201b;
+      box-shadow: 0 12px 32px rgba(0,0,0,0.28);
+    }
+    .album-title { margin-top: 10px; font-weight: 690; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .album-subtitle { margin-top: 3px; color: rgba(246,241,232,0.5); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .track-list { display: grid; gap: 10px; }
+    .track {
+      min-height: 66px;
+      display: grid;
+      grid-template-columns: 48px 1fr 34px;
+      gap: 12px;
+      align-items: center;
+      padding: 8px;
+      border-radius: 8px;
+      background: rgba(255,255,255,0.045);
+      border: 1px solid rgba(255,255,255,0.06);
+      text-align: left;
+    }
+    .track img { width: 48px; height: 48px; border-radius: 7px; object-fit: cover; }
+    .track strong { display: block; font-size: 14px; margin-bottom: 4px; }
+    .track span { color: rgba(246,241,232,0.52); font-size: 12px; }
+    .play-dot {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: rgba(246,241,232,0.12);
+      color: #f7f2ea;
+    }
+    .search-box {
+      height: 46px;
+      border-radius: 8px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.08);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 14px;
+      color: rgba(246,241,232,0.56);
+      margin-bottom: 18px;
+    }
+    .mood-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .mood {
+      min-height: 92px;
+      border-radius: 8px;
+      padding: 13px;
+      text-align: left;
+      display: flex;
+      align-items: end;
+      background: #161719;
+      border: 1px solid rgba(255,255,255,0.07);
+      position: relative;
+      overflow: hidden;
+    }
+    .mood::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, var(--mood-a), transparent 70%);
+      opacity: 0.58;
+    }
+    .mood span { position: relative; font-weight: 720; }
+    .library-grid { display: grid; gap: 11px; }
+    .library-row {
+      min-height: 58px;
+      border-radius: 8px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.07);
+      display: grid;
+      grid-template-columns: 42px 1fr auto;
+      gap: 12px;
+      align-items: center;
+      padding: 8px 12px 8px 8px;
+    }
+    .library-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 7px;
+      display: grid;
+      place-items: center;
+      background: rgba(246, 91, 75, 0.18);
+      color: #ffb199;
+    }
+    .library-row strong { display: block; font-size: 14px; }
+    .library-row span { color: rgba(246,241,232,0.48); font-size: 12px; }
+    .mini-player {
+      position: absolute;
+      left: 12px;
+      right: 12px;
+      bottom: 82px;
+      height: 64px;
+      border-radius: 8px;
+      background: rgba(30, 24, 20, 0.92);
+      border: 1px solid rgba(255,255,255,0.10);
+      display: grid;
+      grid-template-columns: 48px 1fr 40px;
+      gap: 12px;
+      align-items: center;
+      padding: 8px 12px 8px 8px;
+      z-index: 20;
+      backdrop-filter: blur(18px);
+      text-align: left;
+    }
+    .mini-player img { width: 48px; height: 48px; border-radius: 7px; object-fit: cover; }
+    .mini-player strong { display: block; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .mini-player span { display: block; color: rgba(246,241,232,0.52); font-size: 12px; margin-top: 3px; }
+    .bottom-tabs {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 88px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      padding: 9px 14px 24px;
+      background: rgba(8, 9, 11, 0.92);
+      border-top: 1px solid rgba(255,255,255,0.08);
+      backdrop-filter: blur(22px);
+      z-index: 18;
+    }
+    .tab {
+      display: grid;
+      place-items: center;
+      gap: 4px;
+      color: rgba(246,241,232,0.43);
+      font-size: 10px;
+    }
+    .tab svg { width: 23px; height: 23px; }
+    .tab.active { color: #f65b4b; }
+    .home-indicator {
+      position: absolute;
+      left: 50%;
+      bottom: 10px;
+      transform: translateX(-50%);
+      width: 140px;
+      height: 5px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.52);
+      z-index: 40;
+    }
+    .player-screen {
+      position: absolute;
+      inset: 0;
+      z-index: 35;
+      background:
+        linear-gradient(180deg, rgba(246, 91, 75, 0.24), transparent 42%),
+        linear-gradient(135deg, #17110f, #08090a 68%);
+      padding: 68px 24px 26px;
+      display: flex;
+      flex-direction: column;
+    }
+    .player-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 26px;
+    }
+    .icon-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.09);
+    }
+    .now-cover {
+      width: 100%;
+      aspect-ratio: 1;
+      border-radius: 12px;
+      object-fit: cover;
+      box-shadow: 0 32px 70px rgba(0,0,0,0.42);
+    }
+    .song-meta { margin-top: 28px; }
+    .song-meta h2 { font-size: 28px; line-height: 1.1; }
+    .song-meta p { margin-top: 7px; color: rgba(246,241,232,0.58); }
+    .progress {
+      margin-top: 24px;
+      height: 5px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.16);
+      overflow: hidden;
+    }
+    .progress span { display: block; height: 100%; width: 42%; border-radius: inherit; background: #f65b4b; }
+    .time-row { display: flex; justify-content: space-between; color: rgba(246,241,232,0.42); font-size: 12px; margin-top: 8px; }
+    .controls {
+      margin-top: auto;
+      display: grid;
+      grid-template-columns: 48px 62px 78px 62px 48px;
+      gap: 8px;
+      align-items: center;
+      justify-content: center;
+    }
+    .control { width: 48px; height: 48px; display: grid; place-items: center; color: rgba(246,241,232,0.72); }
+    .control.mid { width: 62px; height: 62px; }
+    .control.play {
+      width: 78px;
+      height: 78px;
+      border-radius: 50%;
+      color: #111;
+      background: #f7f2ea;
+      box-shadow: 0 14px 35px rgba(246,91,75,0.24);
+    }
+    @media (max-width: 880px) {
+      #root { padding: 18px 10px; align-items: start; }
+      .stage { display: block; }
+      .brief { display: none; }
+      .phone-shell {
+        transform: scale(0.86);
+        transform-origin: top center;
+        margin-bottom: -120px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState } = React;
+
+    const albums = [
+      {
+        title: "黄昏以后",
+        artist: "Luna Park",
+        mood: "城市夜跑",
+        cover: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?auto=format&fit=crop&w=600&q=80"
+      },
+      {
+        title: "浅蓝留声",
+        artist: "Mika Echo",
+        mood: "独处",
+        cover: "https://images.unsplash.com/photo-1511379938547-c1f69419868d?auto=format&fit=crop&w=600&q=80"
+      },
+      {
+        title: "玻璃沙滩",
+        artist: "Ocean Code",
+        mood: "通勤",
+        cover: "https://images.unsplash.com/photo-1516280440614-37939bbacd81?auto=format&fit=crop&w=600&q=80"
+      },
+      {
+        title: "低频信箱",
+        artist: "NOVA-11",
+        mood: "电子",
+        cover: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=600&q=80"
+      }
+    ];
+
+    const tracks = [
+      { title: "慢速穿过霓虹", artist: "Luna Park", cover: albums[0].cover },
+      { title: "把雨声调小", artist: "Mika Echo", cover: albums[1].cover },
+      { title: "周三的海岸线", artist: "Ocean Code", cover: albums[2].cover },
+      { title: "最后一班地铁", artist: "NOVA-11", cover: albums[3].cover }
+    ];
+
+    const tabs = [
+      { key: "home", label: "今日", icon: "home" },
+      { key: "discover", label: "发现", icon: "spark" },
+      { key: "search", label: "搜索", icon: "search" },
+      { key: "library", label: "资料库", icon: "library" }
+    ];
+
+    function Icon({ name }) {
+      const common = { fill: "none", stroke: "currentColor", strokeWidth: 2, strokeLinecap: "round", strokeLinejoin: "round" };
+      if (name === "home") return <svg viewBox="0 0 24 24"><path {...common} d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-5v-6h-4v6H5a1 1 0 0 1-1-1z" /></svg>;
+      if (name === "spark") return <svg viewBox="0 0 24 24"><path {...common} d="M12 3l1.9 5.7L20 11l-6.1 2.3L12 20l-1.9-6.7L4 11l6.1-2.3z" /></svg>;
+      if (name === "search") return <svg viewBox="0 0 24 24"><circle {...common} cx="11" cy="11" r="6" /><path {...common} d="m16 16 4 4" /></svg>;
+      if (name === "library") return <svg viewBox="0 0 24 24"><path {...common} d="M5 5h3v15H5zM11 4h3v16h-3zM17 7h3v13h-3z" /></svg>;
+      if (name === "play") return <svg viewBox="0 0 24 24" width="21" height="21"><path fill="currentColor" d="M8 5.5v13l11-6.5z" /></svg>;
+      if (name === "pause") return <svg viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M7 5h4v14H7zM13 5h4v14h-4z" /></svg>;
+      if (name === "heart") return <svg viewBox="0 0 24 24" width="22" height="22"><path {...common} d="M20.5 8.8c0 5-8.5 10.2-8.5 10.2S3.5 13.8 3.5 8.8A4.4 4.4 0 0 1 12 7.2a4.4 4.4 0 0 1 8.5 1.6z" /></svg>;
+      if (name === "back") return <svg viewBox="0 0 24 24" width="22" height="22"><path {...common} d="m15 6-6 6 6 6" /></svg>;
+      if (name === "dots") return <svg viewBox="0 0 24 24" width="22" height="22"><path {...common} d="M5 12h.01M12 12h.01M19 12h.01" /></svg>;
+      if (name === "prev") return <svg viewBox="0 0 24 24" width="30" height="30"><path fill="currentColor" d="M6 5h2v14H6zM9 12l9 7V5z" /></svg>;
+      if (name === "next") return <svg viewBox="0 0 24 24" width="30" height="30"><path fill="currentColor" d="M16 5h2v14h-2zM15 12 6 19V5z" /></svg>;
+      return null;
+    }
+
+    function StatusBar() {
+      return (
+        <>
+          <div className="status-bar">
+            <span>9:41</span>
+            <div className="status-icons">
+              <div className="signal"><i style={{height: 4}} /><i style={{height: 6}} /><i style={{height: 9}} /><i style={{height: 11}} /></div>
+              <svg width="16" height="12" viewBox="0 0 16 12" fill="none"><path d="M8 11.5a1 1 0 1 0 0-2 1 1 0 0 0 0 2z" fill="currentColor" /><path d="M3 7.5a7 7 0 0 1 10 0M1 4.5a11 11 0 0 1 14 0" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" /></svg>
+              <div className="battery" />
+            </div>
+          </div>
+          <div className="dynamic-island" />
+        </>
+      );
+    }
+
+    function HomeScreen({ onPlay }) {
+      return (
+        <div className="content with-player">
+          <div className="topline">
+            <div>
+              <div className="eyebrow">为你调好</div>
+              <div className="title">今晚听点<br />有光的歌</div>
+            </div>
+            <div className="avatar" />
+          </div>
+          <button className="hero-card" onClick={() => onPlay(tracks[0])}>
+            <div>
+              <p>Echo Mix · 32 首</p>
+              <h2>夜行者低速歌单</h2>
+            </div>
+            <p>根据最近收藏的独立流行、City Pop 和轻电子生成。</p>
+          </button>
+          <div className="section-row"><h3>新鲜专辑</h3><span>横滑查看更多</span></div>
+          <div className="album-strip">
+            {albums.map(album => (
+              <button className="album-card" key={album.title} onClick={() => onPlay({title: album.title, artist: album.artist, cover: album.cover})}>
+                <img className="cover" src={album.cover} alt={album.title} />
+                <div className="album-title">{album.title}</div>
+                <div className="album-subtitle">{album.artist}</div>
+              </button>
+            ))}
+          </div>
+          <div className="section-row"><h3>继续听</h3><span>最近播放</span></div>
+          <div className="track-list">
+            {tracks.slice(0, 3).map(track => <Track key={track.title} track={track} onPlay={onPlay} />)}
+          </div>
+        </div>
+      );
+    }
+
+    function DiscoverScreen({ onPlay }) {
+      return (
+        <div className="content with-player">
+          <div className="topline">
+            <div>
+              <div className="eyebrow">编辑精选</div>
+              <div className="title">发现</div>
+            </div>
+            <div className="avatar" />
+          </div>
+          <div className="mood-grid">
+            <button className="mood" style={{"--mood-a": "rgba(246,91,75,.78)"}} onClick={() => onPlay(tracks[0])}><span>通勤提神</span></button>
+            <button className="mood" style={{"--mood-a": "rgba(55,189,173,.78)"}} onClick={() => onPlay(tracks[1])}><span>雨天房间</span></button>
+            <button className="mood" style={{"--mood-a": "rgba(230,216,108,.78)"}} onClick={() => onPlay(tracks[2])}><span>午后醒脑</span></button>
+            <button className="mood" style={{"--mood-a": "rgba(151,116,255,.62)"}} onClick={() => onPlay(tracks[3])}><span>深夜电子</span></button>
+          </div>
+          <div className="section-row"><h3>本周上升</h3><span>8 首</span></div>
+          <div className="track-list">
+            {tracks.map(track => <Track key={track.title} track={track} onPlay={onPlay} />)}
+          </div>
+        </div>
+      );
+    }
+
+    function SearchScreen({ onPlay }) {
+      return (
+        <div className="content with-player">
+          <div className="title" style={{marginBottom: 18}}>搜索</div>
+          <div className="search-box"><Icon name="search" /> 搜索歌曲、专辑、歌手</div>
+          <div className="section-row"><h3>热门搜索</h3><span>现在</span></div>
+          <div className="track-list">
+            {tracks.map(track => <Track key={track.title} track={track} onPlay={onPlay} />)}
+          </div>
+        </div>
+      );
+    }
+
+    function LibraryScreen({ onPlay }) {
+      const rows = [
+        ["喜欢的音乐", "128 首", "heart"],
+        ["本地下载", "23 首离线可听", "library"],
+        ["最近播放", "刚刚更新", "play"],
+        ["私人歌单", "6 个收藏夹", "spark"]
+      ];
+      return (
+        <div className="content with-player">
+          <div className="topline">
+            <div>
+              <div className="eyebrow">你的声音档案</div>
+              <div className="title">资料库</div>
+            </div>
+            <div className="avatar" />
+          </div>
+          <div className="library-grid">
+            {rows.map(row => (
+              <button className="library-row" key={row[0]} onClick={() => onPlay(tracks[0])}>
+                <div className="library-icon"><Icon name={row[2]} /></div>
+                <div><strong>{row[0]}</strong><span>{row[1]}</span></div>
+                <span style={{color: "rgba(246,241,232,.36)"}}>›</span>
+              </button>
+            ))}
+          </div>
+          <div className="section-row"><h3>收藏专辑</h3><span>4 张</span></div>
+          <div className="album-strip">
+            {albums.map(album => (
+              <button className="album-card" key={album.title} onClick={() => onPlay({title: album.title, artist: album.artist, cover: album.cover})}>
+                <img className="cover" src={album.cover} alt={album.title} />
+                <div className="album-title">{album.title}</div>
+                <div className="album-subtitle">{album.mood}</div>
+              </button>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    function Track({ track, onPlay }) {
+      return (
+        <button className="track" onClick={() => onPlay(track)}>
+          <img src={track.cover} alt={track.title} />
+          <div><strong>{track.title}</strong><span>{track.artist}</span></div>
+          <div className="play-dot"><Icon name="play" /></div>
+        </button>
+      );
+    }
+
+    function MiniPlayer({ song, onOpen }) {
+      return (
+        <button className="mini-player" onClick={onOpen}>
+          <img src={song.cover} alt={song.title} />
+          <div><strong>{song.title}</strong><span>{song.artist}</span></div>
+          <Icon name="pause" />
+        </button>
+      );
+    }
+
+    function PlayerScreen({ song, onClose }) {
+      return (
+        <div className="player-screen">
+          <div className="player-top">
+            <button className="icon-btn" onClick={onClose}><Icon name="back" /></button>
+            <div style={{textAlign: "center"}}>
+              <div className="eyebrow">正在播放</div>
+              <div style={{fontSize: 12, color: "rgba(246,241,232,.54)", marginTop: 3}}>Echo Mix</div>
+            </div>
+            <button className="icon-btn"><Icon name="dots" /></button>
+          </div>
+          <img className="now-cover" src={song.cover} alt={song.title} />
+          <div className="song-meta">
+            <h2>{song.title}</h2>
+            <p>{song.artist}</p>
+          </div>
+          <div className="progress"><span /></div>
+          <div className="time-row"><span>1:42</span><span>-2:18</span></div>
+          <div className="controls">
+            <button className="control"><Icon name="heart" /></button>
+            <button className="control mid"><Icon name="prev" /></button>
+            <button className="control play"><Icon name="pause" /></button>
+            <button className="control mid"><Icon name="next" /></button>
+            <button className="control"><Icon name="spark" /></button>
+          </div>
+        </div>
+      );
+    }
+
+    function MusicApp() {
+      const [tab, setTab] = useState("home");
+      const [song, setSong] = useState(tracks[0]);
+      const [playerOpen, setPlayerOpen] = useState(false);
+      const playSong = nextSong => { setSong(nextSong); setPlayerOpen(true); };
+      const screenMap = {
+        home: <HomeScreen onPlay={playSong} />,
+        discover: <DiscoverScreen onPlay={playSong} />,
+        search: <SearchScreen onPlay={playSong} />,
+        library: <LibraryScreen onPlay={playSong} />
+      };
+      return (
+        <div className="phone-shell">
+          <div className="phone-screen">
+            <StatusBar />
+            <div className="app">
+              {screenMap[tab]}
+              <MiniPlayer song={song} onOpen={() => setPlayerOpen(true)} />
+              <div className="bottom-tabs">
+                {tabs.map(item => (
+                  <button className={`tab ${tab === item.key ? "active" : ""}`} key={item.key} onClick={() => setTab(item.key)}>
+                    <Icon name={item.icon} />
+                    <span>{item.label}</span>
+                  </button>
+                ))}
+              </div>
+              {playerOpen && <PlayerScreen song={song} onClose={() => setPlayerOpen(false)} />}
+              <div className="home-indicator" />
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    function App() {
+      return (
+        <main className="stage">
+          <section className="brief">
+            <h1>回声 Echo<br />听歌 App 原型</h1>
+            <p>一个高保真的 iOS 音乐体验：可点击推荐、专辑、底部 Tab 和完整播放页。视觉方向避开常见音乐 App 的纯黑模板，使用暖红、青绿、黄调和唱片质感建立记忆点。</p>
+            <div className="brief-grid">
+              <div className="brief-chip"><strong>4</strong><span>核心 Tab：今日、发现、搜索、资料库</span></div>
+              <div className="brief-chip"><strong>2</strong><span>播放器状态：迷你栏与全屏播放页</span></div>
+              <div className="brief-chip"><strong>iOS</strong><span>状态栏、灵动岛、Home Indicator</span></div>
+              <div className="brief-chip"><strong>Click</strong><span>歌曲、专辑、分类都可进入播放</span></div>
+            </div>
+          </section>
+          <MusicApp />
+        </main>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById("root"));
+    root.render(<App />);
+  </script>
+</body>
+</html>

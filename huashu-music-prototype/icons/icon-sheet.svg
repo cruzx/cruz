@@ -1,0 +1,102 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="680" viewBox="0 0 960 680">
+  <defs>
+    <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="16" stdDeviation="18" flood-color="#60C7D9" flood-opacity="0.18"/>
+    </filter>
+    <linearGradient id="tile" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#F7FEFF"/>
+      <stop offset="1" stop-color="#D9F7FB"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#14CFE4"/>
+      <stop offset="1" stop-color="#B9FF45"/>
+    </linearGradient>
+    <style>
+      .bg { fill: #EAFBFF; }
+      .tile { fill: url(#tile); stroke: rgba(6, 37, 45, 0.08); stroke-width: 1.5; filter: url(#softShadow); }
+      .line { fill: none; stroke: #0B1720; stroke-width: 8; stroke-linecap: round; stroke-linejoin: round; }
+      .fine { fill: none; stroke: #0B1720; stroke-width: 5.5; stroke-linecap: round; stroke-linejoin: round; }
+      .accent { fill: none; stroke: url(#accent); stroke-width: 8; stroke-linecap: round; stroke-linejoin: round; }
+      .accentFill { fill: url(#accent); }
+      .label { font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif; font-size: 30px; font-weight: 650; fill: #0B1720; text-anchor: middle; }
+    </style>
+  </defs>
+
+  <rect class="bg" width="960" height="680"/>
+
+  <!-- 学习 -->
+  <g transform="translate(80 52)">
+    <rect class="tile" width="220" height="220" rx="28"/>
+    <g transform="translate(42 50)">
+      <path class="line" d="M18 24c34-10 55 0 68 14 13-14 34-24 68-14v112c-34-10-55 0-68 14-13-14-34-24-68-14z"/>
+      <path class="fine" d="M86 38v112"/>
+      <path class="fine" d="M38 58c17-4 30-3 40 3M38 82c17-4 30-3 40 3M96 61c10-6 24-7 40-3M96 85c10-6 24-7 40-3"/>
+      <path class="accent" d="M20 20c32-7 53 3 66 18"/>
+    </g>
+    <text class="label" x="110" y="292">学习</text>
+  </g>
+
+  <!-- 通勤 -->
+  <g transform="translate(370 52)">
+    <rect class="tile" width="220" height="220" rx="28"/>
+    <g transform="translate(43 42)">
+      <rect class="line" x="14" y="16" width="132" height="118" rx="22"/>
+      <path class="fine" d="M42 16h76M36 138l-18 24M124 138l18 24"/>
+      <path class="fine" d="M44 52h72M44 76h72"/>
+      <circle cx="48" cy="112" r="9" fill="#0B1720"/>
+      <circle cx="112" cy="112" r="9" fill="#0B1720"/>
+      <path class="accent" d="M80 16v118"/>
+    </g>
+    <text class="label" x="110" y="292">通勤</text>
+  </g>
+
+  <!-- 运动 -->
+  <g transform="translate(660 52)">
+    <rect class="tile" width="220" height="220" rx="28"/>
+    <g transform="translate(36 42)">
+      <circle cx="92" cy="22" r="16" fill="#0B1720"/>
+      <path class="line" d="M82 50l-28 34 34 24 34-29"/>
+      <path class="line" d="M70 100l-18 56M98 105l48 30"/>
+      <path class="fine" d="M40 68l-25 6M126 76l24-20"/>
+      <path class="accent" d="M20 164h62c16 0 28-6 38-18"/>
+    </g>
+    <text class="label" x="110" y="292">运动</text>
+  </g>
+
+  <!-- 驾驶 -->
+  <g transform="translate(80 370)">
+    <rect class="tile" width="220" height="220" rx="28"/>
+    <g transform="translate(36 52)">
+      <path class="line" d="M22 76c6-38 27-56 72-56s66 18 72 56"/>
+      <path class="line" d="M10 84h168v60H10z"/>
+      <path class="fine" d="M40 84l14-28h80l14 28"/>
+      <circle cx="44" cy="126" r="12" fill="#0B1720"/>
+      <circle cx="144" cy="126" r="12" fill="#0B1720"/>
+      <path class="accent" d="M68 112h52"/>
+    </g>
+    <text class="label" x="110" y="292">驾驶</text>
+  </g>
+
+  <!-- 睡前 -->
+  <g transform="translate(370 370)">
+    <rect class="tile" width="220" height="220" rx="28"/>
+    <g transform="translate(38 40)">
+      <path class="line" d="M96 24c-31 13-49 46-38 79 12 39 55 59 93 43-13 26-42 45-76 45-47 0-85-38-85-85 0-38 25-70 60-81 14-5 30-5 46-1z"/>
+      <path class="fine" d="M124 50l8 16 18 3-13 12 3 18-16-8-16 8 3-18-13-12 18-3z"/>
+      <path class="accent" d="M34 151c14 18 36 30 62 30"/>
+    </g>
+    <text class="label" x="110" y="292">睡前</text>
+  </g>
+
+  <!-- emo -->
+  <g transform="translate(660 370)">
+    <rect class="tile" width="220" height="220" rx="28"/>
+    <g transform="translate(36 38)">
+      <path class="line" d="M90 166S22 125 22 74c0-27 20-46 45-46 15 0 28 7 36 18 8-11 21-18 36-18 25 0 45 19 45 46 0 51-68 92-94 92z"/>
+      <path class="fine" d="M104 47l-20 40 28 12-24 42"/>
+      <path class="fine" d="M54 104c14 10 30 15 49 15s35-5 49-15"/>
+      <path class="accent" d="M33 80c-2-24 13-40 34-40"/>
+    </g>
+    <text class="label" x="110" y="292">emo</text>
+  </g>
+</svg>
